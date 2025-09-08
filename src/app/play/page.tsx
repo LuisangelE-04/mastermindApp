@@ -1,11 +1,9 @@
-import MastermindGame from '@/components/gameboard';
+import MastermindGame from '@/components/mastermind';
 
 export default function Play() {
   return (
     <main>
-      <div>
-        <MastermindGame />
-      </div>
+      <MastermindGame />
     </main>
   )
 }

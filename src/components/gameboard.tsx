@@ -1,5 +1,12 @@
 import FeedbackGrid from './feedback';
 import { getColorClass } from '@/utility/colors';
+import { GuessHistoryItem } from '@/utility/types';
+
+interface GuessGridProps {
+  currentGuess: string[];
+  submittedGuesses: GuessHistoryItem[];
+  maxGuesses: number;
+}
 
 interface GuessRowProps {
   guessNumber: number;
@@ -9,30 +16,47 @@ interface GuessRowProps {
     positionMatches: number;
     noMatches: number;
   };
+  currentGuess: string[];
+  isCurrentRow: boolean;
 }
 
-function GuessRow({ guessNumber, guessData }: GuessRowProps) {
+function GuessRow({ 
+  guessNumber, 
+  guessData,
+  currentGuess,
+  isCurrentRow
+}: GuessRowProps) {
   return (
     <div className='flex items-center gap-4 mb-2'>
       <span className='text-sm font-mono w-6 text-gray-500'>
         {guessNumber.toString().padStart(2, '0')}
       </span>
       <div className='flex gap-2'>
-        {Array.from({ length: 6 }, (_, colorIndex) => (
-          <div
+        {Array.from({ length: 6 }, (_, colorIndex) => {
+          let color = null;
+
+          if (guessData) {
+            color = guessData.guess[colorIndex];
+          }
+          else if (isCurrentRow && currentGuess[colorIndex]) {
+            color = currentGuess[colorIndex];
+          }
+
+          return (
+            <div
             key={colorIndex}
-            className='w-7 h-7 rounded-full border-2 border-gray-300 flex items-center justify-center bg-gray-100'
-          >
-            {guessData ? (
-              <div className={`w-full h-full rounded-full ${getColorClass(guessData.guess[colorIndex])}`} />
-            ) : (
-              <span className='text-gray-400 text-xs'>{colorIndex + 1}</span>
-            )}
-          </div>
-        ))}
+            className={`w-7 h-7 rounded-full border-2 border-gray-300 flex items-center justify-center 
+                        ${color ? getColorClass(color) : 'bg-gray-100'}`}
+            >
+              {!color && (
+                <span className='text-gray-400 text-sm'>{colorIndex + 1}</span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <div className="ml-4">
+      <div className='ml-2'>  
         {guessData ? (
           <FeedbackGrid 
             exactMatches={guessData.exactMatches} 
@@ -54,16 +78,32 @@ function GuessRow({ guessNumber, guessData }: GuessRowProps) {
   );
 }
 
-export default function GuessGrid() {
-  const MAX_GUESSES = 20;
-  const guessNumbers = Array.from({ length: MAX_GUESSES }, (_, index) => MAX_GUESSES - index);
+export default function GuessGrid({
+  currentGuess,
+  submittedGuesses,
+  maxGuesses
+}:  GuessGridProps){
+  const currentAttempt = submittedGuesses.length + 1;
 
   return (
     <div className='p-4 flex justify-center'>
       <div className=''>
-        {guessNumbers.map(guessNumber => (
-          <GuessRow key={guessNumber} guessNumber={guessNumber} />
-        ))}
+        {Array.from({ length: maxGuesses }, (_, index) => {
+          const guessNumber = maxGuesses - index;
+          const guessIndex = guessNumber - 1;
+          const guessData = submittedGuesses[guessIndex];
+          const isCurrentRow = guessNumber === currentAttempt;
+
+          return (
+            <GuessRow 
+              key={guessNumber} 
+              guessNumber={guessNumber}
+              guessData={guessData}
+              currentGuess={currentGuess}
+              isCurrentRow={isCurrentRow}
+            />
+          );
+        })}
       </div>
     </div>
   )
