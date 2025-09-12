@@ -1,4 +1,6 @@
-import Link from 'next/link';
+'use client';
+
+import CreateGame from '@/components/create';
 
 export default function HomePage() {
   return (
@@ -6,9 +8,7 @@ export default function HomePage() {
       <h1>Welcome to Mastermind App</h1>
       <p>This is a simple Next.js page.</p>
 
-      <Link href='/play'>
-        Play Now
-      </Link>
+      <CreateGame />
     </main>
   );
 }

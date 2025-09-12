@@ -5,13 +5,22 @@ import GuessGrid from './gameboard'
 import { useState, useEffect } from 'react'
 import { GuessHistoryItem, GameStateResponse } from '@/utility/types';
 
+interface MastermindGameProps {
+  initialGameId?: number;
+  initialStatus?: string;
+  initialAttempt?: number;
+}
 
-export default function MastermindGame() {
+export default function MastermindGame({ 
+  initialGameId,
+  initialStatus, 
+  initialAttempt 
+}: MastermindGameProps) {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [submittedGuesses, setSubmittedGuesses] = useState<GuessHistoryItem[]>([]);
-  const [gameId, setGameId] = useState<number | null>(7);
-  const [gameStatus, setGameStatus] = useState<string>('IN_PROGRESS');
-  const [attempts, setAttempts] = useState<number>(0);
+  const [gameId, setGameId] = useState<number | null>(initialGameId || null);
+  const [gameStatus, setGameStatus] = useState<string>(initialStatus);
+  const [attempts, setAttempts] = useState<number>(initialAttempt);
   const MAX_GUESSES = 20;
 
   useEffect(() => {
@@ -24,13 +33,11 @@ export default function MastermindGame() {
     try {
       const API = process.env.NEXT_PUBLIC_API_URL;
 
-      console.log('Loading game state for the gameId:', gameId);
 
       const response = await fetch(`${API}/games/${gameId}`);
 
       if (response.ok) {
         const gameState: GameStateResponse = await response.json();
-        console.log('Loaded game state:', gameState);
 
         setSubmittedGuesses(gameState.guessHistory);
         setGameStatus(gameState.status);
@@ -50,18 +57,14 @@ export default function MastermindGame() {
   };
 
   const handleSubmitGuess = async () => {
-    if (currentGuess.length !== 6 || !gameId) return;
+    if (currentGuess.length !== 6 || !gameId || gameStatus !== 'IN_PROGRESS') return;
 
     try {
       const API = process.env.NEXT_PUBLIC_API_URL;
 
-      console.log('Submitting guess to game:', gameId);
-      console.log('Current guess:', currentGuess);
-
       const response = await fetch(`${API}/games/${gameId}/guess`, {
         method: 'POST',
         headers: {
-          'accept': '*/*',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -70,33 +73,18 @@ export default function MastermindGame() {
       });
 
       if (response.ok) {
-        const result: GameStateResponse = await response.json();
+        const guessResult = await response.json();
         
-        console.log('API Response:', result);
+        console.log('API Response:', guessResult);
         
-        const latestGuess = result.guessHistory[result.guessHistory.length - 1];
-        if (latestGuess) {
-          console.log('Latest Guess Results:');
-          console.log('Exact Matches:', latestGuess.exactMatches);
-          console.log('Position Matches:', latestGuess.positionMatches);
-          console.log('No Matches:', latestGuess.noMatches);
-        }
-        
-        setSubmittedGuesses(result.guessHistory);
-        setGameStatus(result.status);
         setCurrentGuess([]);
-        
-        if (result.status === 'WON' || result.status === 'LOST') {
+        await loadGameState();
+        if (guessResult.isGameOver) {
           console.log('Game Over!');
-          console.log('Final Status:', result.status);
-          if (result.secretCode) {
-            console.log('Secret Code was:', result.secretCode);
-          }
+          console.log('Final Status:', guessResult.gameStatus)
         }
       } else {
-        console.error('Failed to submit guess. Status:', response.status);
-        const errorText = await response.text();
-        console.error('Error details:', errorText);
+        console.error('Failed to submit guess.');
       }
     } catch (error) {
       console.error('Error submitting guess', error);

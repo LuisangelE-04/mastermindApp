@@ -12,4 +12,10 @@ export interface GameStateResponse {
   attempts: number;
   guessHistory: GuessHistoryItem[];
   secretCode?: string[] | null;
+} 
+
+export interface CreateGameResponse {
+  gameId: number;
+  status: string;
+  attempts: number;
 }
