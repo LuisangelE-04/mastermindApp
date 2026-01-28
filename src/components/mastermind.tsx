@@ -2,7 +2,7 @@
 
 import ColorPalette from './palette'
 import GuessGrid from './gameboard'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { GuessHistoryItem, GameStateResponse } from '@/utility/types';
 
 interface MastermindGameProps {
@@ -18,18 +18,12 @@ export default function MastermindGame({
 }: MastermindGameProps) {
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [submittedGuesses, setSubmittedGuesses] = useState<GuessHistoryItem[]>([]);
-  const [gameId, setGameId] = useState<number | null>(initialGameId || null);
+  const [gameId] = useState<number | null>(initialGameId ?? null);
   const [gameStatus, setGameStatus] = useState<string>(initialStatus ?? 'IN_PROGRESS');
   const [attempts, setAttempts] = useState<number>(initialAttempt ?? 0);
   const MAX_GUESSES = 20;
 
-  useEffect(() => {
-    if (gameId) {
-      loadGameState();
-    }
-  }, [gameId]);
-
-  const loadGameState = async () => {
+  const loadGameState = useCallback(async () => {
     try {
       const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -48,7 +42,13 @@ export default function MastermindGame({
     } catch (error) {
       console.error('Error loading game state:', error);
     }
-  };
+  }, [gameId]);
+
+  useEffect(() => {
+    if (gameId) {
+      loadGameState();
+    }
+  }, [gameId, loadGameState]);
 
   const handleColorSelect = (color: string) => {
     if (currentGuess.length < 6) {
@@ -98,6 +98,7 @@ export default function MastermindGame({
   return (
     <div className='flex-row'>
       <p>{gameStatus}</p>
+      <p>Attempts: {attempts}</p>
       <GuessGrid
         currentGuess={currentGuess}
         submittedGuesses={submittedGuesses}
