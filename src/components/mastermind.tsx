@@ -19,8 +19,8 @@ export default function MastermindGame({
   const [currentGuess, setCurrentGuess] = useState<string[]>([]);
   const [submittedGuesses, setSubmittedGuesses] = useState<GuessHistoryItem[]>([]);
   const [gameId, setGameId] = useState<number | null>(initialGameId || null);
-  const [gameStatus, setGameStatus] = useState<string>(initialStatus);
-  const [attempts, setAttempts] = useState<number>(initialAttempt);
+  const [gameStatus, setGameStatus] = useState<string>(initialStatus ?? 'IN_PROGRESS');
+  const [attempts, setAttempts] = useState<number>(initialAttempt ?? 0);
   const MAX_GUESSES = 20;
 
   useEffect(() => {
