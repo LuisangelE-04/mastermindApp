@@ -5,7 +5,11 @@ import { useSearchParams } from 'next/navigation';
 
 export default function Play() {
   const searchParams = useSearchParams();
-  const gameId = searchParams.get('gameId');
+  const gameIdParam = searchParams.get('gameId');
+  const parsedGameId = gameIdParam ? Number(gameIdParam) : undefined;
+  const gameId = parsedGameId !== undefined && !Number.isNaN(parsedGameId)
+    ? parsedGameId
+    : undefined;
 
   return (
     <main>
